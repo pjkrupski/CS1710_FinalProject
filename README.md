@@ -25,12 +25,12 @@ This might lead to some interesting problems we can query about: if an eavesdrop
 
 ## Potential Vulnerabiliteis 
 
-###User
+### User
 - Account password length
 - Uses multifactor authentication?
 - Credentials Cached?
 
-###Connection
+### Connection
 - Web Brower up to date?
 - Http or Https being used?
 - Open network?
@@ -38,20 +38,21 @@ This might lead to some interesting problems we can query about: if an eavesdrop
 - Wifi protocol being used? 
 - WEP, WPA, WPA2
 
-###End point
+### End point
 - Webserver security up to date?
 - Encrypts data at rest? 
 - Validates input
 
 
 
-References 
-###Out of date browser
+## References 
+### Out of date browser
+
 https://www.whatismybrowser.com/guides/how-to-update-your-browser/faq/what-happens-if-dont-update#:~:text=You%20will%20become%20vulnerable%20to%20security%20problems&text=Web%20browsers%20with%20unpatched%20security,your%20personal%20information%20being%20stolen.
 
-###Webserver vulnerabilities 
+### Webserver vulnerabilities 
 https://www.getastra.com/blog/security-audit/web-server-security/
 
-###Classifying vulnerabilities based on OSI
+### Classifying vulnerabilities based on OSI
 https://www.forcepoint.com/cyber-edu/osi-model#:~:text=The%20OSI%20Model%20(Open%20Systems,between%20different%20products%20and%20software.
 
