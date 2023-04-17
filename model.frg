@@ -1,12 +1,21 @@
 #lang forge 
 
 ---------- Components ----------
+--User, Connection, Endpoint
 
 sig User {
     --active
     --password
-    --mfa
-    --cache 
+    --mfa Enabled or Disabled
+    --password_cache Enabled or Disabled
+}
+
+sig Password {
+    --length int   multiples of 5 
+    --special characters True/False
+    --numbers True/False
+    --upper case True/False
+    --pattern True/False
 }
 
 sig Connection {
@@ -15,6 +24,9 @@ sig Connection {
     --layer4Protocol
     --networkPassword
     --wifiProtocol
+    --Number of network hops
+     --Helper
+    --
 }
 
 sig EndPoint {
@@ -22,8 +34,10 @@ sig EndPoint {
     --osVersion
     --encrypted
     --inputValidation
+    --Verifying the user packet tag T/F
 }
 
+--Verification System Sig  ??
 
 ---------- States ----------
 

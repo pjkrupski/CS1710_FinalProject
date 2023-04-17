@@ -56,3 +56,15 @@ https://www.getastra.com/blog/security-audit/web-server-security/
 ### Classifying vulnerabilities based on OSI
 https://www.forcepoint.com/cyber-edu/osi-model#:~:text=The%20OSI%20Model%20(Open%20Systems,between%20different%20products%20and%20software.
 
+
+
+Paul 
+--Password
+
+Jakob
+--Number of network hops
+
+Tian
+--T/F preds 
+
+
