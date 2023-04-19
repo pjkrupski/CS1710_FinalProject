@@ -39,6 +39,36 @@ sig EndPoint {
 
 --Verification System Sig  ??
 
+sig Message {
+    --public key // the message can be verified by the public key
+    --information 
+}
+abstract sig Participant {
+    --certification //
+    --public key //
+}
+sig CardHolder extends Participant{
+}
+
+sig Issuer extends Participant{
+
+}
+
+sig Merchant extends Participant {
+
+}
+sig Acquirer extends Participant{}
+
+sig CertificateAuthority{}
+
+pred MessageIntegrity[m: Message, participant: Participant]{
+
+}
+
+
+
+
+
 ---------- States ----------
 
 abstract sig State {
