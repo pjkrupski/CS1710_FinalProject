@@ -5,17 +5,9 @@
 
 sig User {
     --active
-    --password
+    password: one Password
     --mfa Enabled or Disabled
     --password_cache Enabled or Disabled
-}
-
-sig Password {
-    --length int   multiples of 5 
-    --special characters True/False
-    --numbers True/False
-    --upper case True/False
-    --pattern True/False
 }
 
 sig Connection {
@@ -38,6 +30,21 @@ sig EndPoint {
 }
 
 --Verification System Sig  ??
+
+---------- Sub Components ----------
+--User, Connection, Endpoint
+
+abstract sig Boolean {}
+one sig True extends Boolean {}
+one sig False extends Boolean {}
+
+sig Password {
+    length: one Int,   --multiples of 5, 1 = (1-5) chars, 2 = (5-10) chars, 3 = (10-15), 4 = (15-MAX)
+    hasSpecChars:  one Boolean,
+    hasNumbers: one Boolean,
+    hasUpperCase: one Boolean,
+    hasPattern: one Boolean
+}
 
 sig Message {
     --public key // the message can be verified by the public key
@@ -109,6 +116,19 @@ pred safeEndPoint[s : State] {
  
 }
 
+-----3 levels of passwords------
+pred unsafePassword[s : State] {
+    s.user.password.length < 3 or
+
+}
+
+pred semisafePassword[s : State] {
+    s.user.password 
+}
+
+pred safePassword[s : State] {
+    s.user.password 
+}
 
 test expect {
 
