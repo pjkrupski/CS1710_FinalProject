@@ -46,32 +46,43 @@ sig Password {
     hasPattern: one Boolean
 }
 
-sig Message {
-    --public key // the message can be verified by the public key
-    --information 
-}
-abstract sig Participant {
-    --certification //
-    --public key //
-}
-sig CardHolder extends Participant{
+sig PublicKey{}
+
+sig SignedMessage {
+    signatureVerifiedBy: one PublicKey  
 }
 
-sig Issuer extends Participant{
-
+sig Certificate extends SignedMessage{
+    pk: one PublicKey,
+    participant: one Participant,
+    expired: one Boolean,
+    signatureVerifiedBy: one PublicKey
 }
 
-sig Merchant extends Participant {
-
-}
+abstract sig Participant {}
+sig CardHolder extends Participant{}
+sig Issuer extends Participant{}
+sig Merchant extends Participant {}
 sig Acquirer extends Participant{}
 
-sig CertificateAuthority{}
 
-pred MessageIntegrity[m: Message, participant: Participant]{
-
+// For now assume single authority, so no certificate chain
+sig CertificateAuthority{
+    pk: one PublicKey,
+    revocationCertificates: set certificate
 }
 
+pred MessageIntegrityHold[m: SignedMessage, participant: Participant, certificate: Certificate, ca: CertificateAuthority]{
+    validCertificate[certificate, ca]
+    certificate.participant = participant
+    m.signatureVerifiedBy = certificate.pk
+}
+
+pred validCertificate[certificate: Certificate, ca:CertificateAuthority]{
+    not certificate in ca.revocationCertificates
+    certificate.expired = False
+    certificate.signatureVerifiedBy = ca.pk
+}
 
 
 
