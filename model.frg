@@ -53,7 +53,7 @@ sig SignedMessage {
 }
 
 sig Certificate extends SignedMessage{
-    pk: one PublicKey,
+    participantPublicKey: one PublicKey,
     participant: one Participant,
     expired: one Boolean,
 }
@@ -67,20 +67,20 @@ sig Acquirer extends Participant{}
 
 // For now assume single authority, so no certificate chain
 sig CertificateAuthority{
-    pk: one PublicKey,
+    authorityPublicKey: one PublicKey,
     revocationCertificates: set certificate
 }
 
 pred MessageIntegrityHold[m: SignedMessage, participant: Participant, certificate: Certificate, ca: CertificateAuthority]{
     validCertificate[certificate, ca]
     certificate.participant = participant
-    m.signatureVerifiedBy = certificate.pk
+    m.signatureVerifiedBy = certificate.participantPublicKey
 }
 
 pred validCertificate[certificate: Certificate, ca:CertificateAuthority]{
     not certificate in ca.revocationCertificates
     certificate.expired = False
-    certificate.signatureVerifiedBy = ca.pk
+    certificate.signatureVerifiedBy = ca.authorityPublicKey
 }
 
 
