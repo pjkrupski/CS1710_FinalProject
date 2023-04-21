@@ -56,7 +56,6 @@ sig Certificate extends SignedMessage{
     pk: one PublicKey,
     participant: one Participant,
     expired: one Boolean,
-    signatureVerifiedBy: one PublicKey
 }
 
 abstract sig Participant {}
