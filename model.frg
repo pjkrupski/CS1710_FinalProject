@@ -5,17 +5,17 @@
 
 sig User {
     --active
-    --password
+    password: one Password
     --mfa Enabled or Disabled
     --password_cache Enabled or Disabled
 }
 
 sig Password {
-    --length int   multiples of 5 
-    --special characters True/False
-    --numbers True/False
-    --upper case True/False
-    --pattern True/False
+    length: one Int,   --multiples of 5, 1 = (1-5) chars, 2 = (5-10) chars, 3 = (10-15), 4 = (15-MAX)
+    hasSpecChars:  one Boolean,
+    hasNumbers: one Boolean,
+    hasUpperCase: one Boolean,
+    hasPattern: one Boolean
 }
 
 abstract sig Protocol {}
@@ -47,6 +47,61 @@ sig EndPoint extends Node {
 }
 
 --Verification System Sig  ??
+
+---------- Sub Components ----------
+--User, Connection, Endpoint
+
+abstract sig Boolean {}
+one sig True extends Boolean {}
+one sig False extends Boolean {}
+
+sig Password {
+    length: one Int,   --multiples of 5, 1 = (1-5) chars, 2 = (5-10) chars, 3 = (10-15), 4 = (15-MAX)
+    hasSpecChars:  one Boolean,
+    hasNumbers: one Boolean,
+    hasUpperCase: one Boolean,
+    hasPattern: one Boolean
+}
+
+sig PublicKey{}
+
+sig SignedMessage {
+    signatureVerifiedBy: one PublicKey  
+}
+
+sig Certificate extends SignedMessage{
+    participantPublicKey: one PublicKey,
+    participant: one Participant,
+    expired: one Boolean,
+}
+
+abstract sig Participant {}
+sig CardHolder extends Participant{}
+sig Issuer extends Participant{}
+sig Merchant extends Participant {}
+sig Acquirer extends Participant{}
+
+
+// For now assume single authority, so no certificate chain
+sig CertificateAuthority{
+    authorityPublicKey: one PublicKey,
+    revocationCertificates: set certificate
+}
+
+pred MessageIntegrityHold[m: SignedMessage, participant: Participant, certificate: Certificate, ca: CertificateAuthority]{
+    validCertificate[certificate, ca]
+    certificate.participant = participant
+    m.signatureVerifiedBy = certificate.participantPublicKey
+}
+
+pred validCertificate[certificate: Certificate, ca:CertificateAuthority]{
+    not certificate in ca.revocationCertificates
+    certificate.expired = False
+    certificate.signatureVerifiedBy = ca.authorityPublicKey
+}
+
+
+
 
 ---------- States ----------
 
@@ -88,6 +143,29 @@ pred safeEndPoint[s : State] {
  
 }
 
+-----3 levels of passwords------
+pred unsafePassword[s : State] {
+    s.user.password.length < 3 or
+    (s.user.password.hasSpecChars = False and s.user.password.hasNumbers = False and s.user.password.hasUpperCase = False) or
+    s.user.password.hasPattern = True
+}
+
+pred semisafePassword[s : State] {
+    s.user.password.length = 3 
+    --At least 2 of the following are true    (hasSpecChars, hasNumbers, hasUpperCase)
+    (s.user.password.hasSpecChars = True and s.user.password.hasNumbers = True) or
+    (s.user.password.hasSpecChars = True and s.user.password.hasUpperCase = True) or
+    (s.user.password.hasNumbers = True and s.user.password.hasUpperCase = True)
+
+}
+
+pred safePassword[s : State] {
+    s.user.password.length >= 4 
+    s.user.password.hasSpecChars = True
+    s.user.password.hasNumbers = True 
+    s.user.password.hasUpperCase = True
+    s.user.password.hasPattern = True
+}
 
 test expect {
 
