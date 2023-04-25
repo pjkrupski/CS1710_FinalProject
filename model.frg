@@ -4,7 +4,7 @@
 --User, Connection, Endpoint
 
 sig User {
-    active: one Boolean,
+    useractive: one Boolean,
     password: one Password,
     mfaEnabled: one Status,
     passwordCache: one Status
@@ -12,19 +12,24 @@ sig User {
 
 
 sig Connection { 
-    active: one Boolean,
+    connectionactive: one Boolean,
     browerVersion: one PatchLevel,
-    layer4Protocol: one Protocol,
+    layer4Protocol: one TransportProtocol,
     networkPassword: one Password,
-    wifiProtocol: one WifiProtocal,
+    wifiProtocol: one WifiProtocol,
 	peer: one Node
 }
 
+abstract sig Node {
+	endpoints: set Node
+}
+
+
 
 sig EndPoint extends Node {
-    active: one Boolean,
+    endpointactive: one Boolean,
     osVersion: one PatchLevel,
-    encryption: one EncyptionAlgorithm,
+    encryption: one EncryptionAlgorithm,
     inputValidation: one Boolean,
     validUserPacket: one Boolean
 }
@@ -58,13 +63,13 @@ sig Password {
 ---Connection sub components---
 
 abstract sig TransportProtocol {}
-sig HTTP extends Protocol {}
-sig HTTPS extends Protocol {}
+sig HTTP extends TransportProtocol {}
+sig HTTPS extends TransportProtocol {}
 
 abstract sig WifiProtocol {}
-sig WEP extends Protocol {}
-sig WPA extends Protocol {}
-sig WPA2 extends Protocol {}
+sig WEP extends WifiProtocol {}
+sig WPA extends WifiProtocol {}
+sig WPA2 extends WifiProtocol {}
 
 abstract sig PatchLevel {}
 sig Critical extends PatchLevel {}
@@ -73,11 +78,6 @@ sig Updated extends PatchLevel {}
 
 sig PublicKey{}
 
-
-
-abstract sig Node {
-	endpoints: set Node
-}
 
 sig Router extends Node {
 }
@@ -89,13 +89,13 @@ sig SignedMessage {
 sig Certificate extends SignedMessage{
     participantPublicKey: one PublicKey,
     participant: one Participant,
-    expired: one Boolean,
+    expired: one Boolean
 }
 
 
 ---EndPoint sub components---
 abstract sig EncryptionAlgorithm {}
-sig 3DES extends EncryptionAlgorithm {}
+sig ThreeDES extends EncryptionAlgorithm {}
 sig AES extends EncryptionAlgorithm {}
 sig TwoFish extends EncryptionAlgorithm {}
 
@@ -113,7 +113,7 @@ sig Acquirer extends Participant{}
 // For now assume single authority, so no certificate chain
 sig CertificateAuthority{
     authorityPublicKey: one PublicKey,
-    revocationCertificates: set certificate
+    revocationCertificates: set Certificate
 }
 
 
