@@ -10,18 +10,35 @@ sig User {
     --password_cache Enabled or Disabled
 }
 
+sig Password {
+    length: one Int,   --multiples of 5, 1 = (1-5) chars, 2 = (5-10) chars, 3 = (10-15), 4 = (15-MAX)
+    hasSpecChars:  one Boolean,
+    hasNumbers: one Boolean,
+    hasUpperCase: one Boolean,
+    hasPattern: one Boolean
+}
+
+abstract sig Protocol {}
+sig HTTP extends Protocol {}
+sig HTTPS extends Protocol {}
+
 sig Connection {
     --active
     --browerVersion
-    --layer4Protocol
+    layer4Protocol: one Protocol,
     --networkPassword
     --wifiProtocol
-    --Number of network hops
-     --Helper
-    --
+	peer: one Node
 }
 
-sig EndPoint {
+abstract sig Node {
+	endpoints: set Node
+}
+
+sig Router extends Node {
+}
+
+sig EndPoint extends Node {
     --active
     --osVersion
     --encrypted
@@ -90,7 +107,7 @@ pred validCertificate[certificate: Certificate, ca:CertificateAuthority]{
 
 abstract sig State {
     user : one User,
-    connection : one connection,
+    connection : one Connection,
     endpoint : one EndPoint
 }
 
@@ -176,6 +193,24 @@ pred idolEndpoint {
     
 }
 
+pred wellformedNetworkTopology[s: State] {
+	-- The network topology should connect the user to the payment processor.
+	reachable[s.endpoint, s.connection.peer, endpoints]
+
+	all node: Node {
+		reachable[node, s.connection.peer, endpoints] => {
+			-- A node should never connect to itself.
+			node not in node.endpoints
+		}
+	}
+}
+
+fun networkTopologyScore[s: State]: one Int {
+	HTTP in s.connection.layer4Protocol => {
+		#s.connection.peer.^endpoints
+	} else 0
+}
+
 test expect {
-  
+  wellformed_sat: { some s: State | wellformedNetworkTopology[s] } is sat
 }
