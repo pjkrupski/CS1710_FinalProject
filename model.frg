@@ -243,3 +243,14 @@ fun networkTopologyScore[s: State]: one Int {
 test expect {
   wellformed_sat: { some s: State | wellformedNetworkTopology[s] } is sat
 }
+
+//Traces
+run {
+    some s: State {
+        unsafePassword[s] or 
+        semisafePassword[s] or
+        safePassword[s]
+    }
+     
+ } for exactly 3 State --, exactly 1 User, exactly 1 Connection, exactly 1 EndPoint
+   --for {next is linear}
