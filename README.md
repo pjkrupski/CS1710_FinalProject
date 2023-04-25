@@ -56,7 +56,18 @@ https://www.getastra.com/blog/security-audit/web-server-security/
 ### Classifying vulnerabilities based on OSI
 https://www.forcepoint.com/cyber-edu/osi-model#:~:text=The%20OSI%20Model%20(Open%20Systems,between%20different%20products%20and%20software.
 
+### 3DES is outdated
+https://www.encryptionconsulting.com/why-3des-or-triple-des-is-officially-being-retired/#:~:text=3DES%20is%20an%20encryption%20cipher,and%20data%2Din%2Dtransit.
 
+### AES is standard and is safer than 3DES
+https://www.arcserve.com/blog/5-common-encryption-algorithms-and-unbreakables-future
+
+### GCP uses AES for data at rest
+https://cloud.google.com/docs/security/encryption/default-encryption#:~:text=We%20use%20the%20AES%20algorithm,2015%20that%20use%20AES%2D128.
+
+
+### Twofish can be better than AES for data at rest when not considering runtime
+https://cloudstorageinfo.org/twofish-vs-aes-encryption
 
 Paul 
 --Password
