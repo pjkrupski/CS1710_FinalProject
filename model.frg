@@ -129,15 +129,25 @@ pred safeEndPoint[s : State] {
 -----3 levels of passwords------
 pred unsafePassword[s : State] {
     s.user.password.length < 3 or
-
+    (s.user.password.hasSpecChars = False and s.user.password.hasNumbers = False and s.user.password.hasUpperCase = False) or
+    s.user.password.hasPattern = True
 }
 
 pred semisafePassword[s : State] {
-    s.user.password 
+    s.user.password.length = 3 
+    --At least 2 of the following are true    (hasSpecChars, hasNumbers, hasUpperCase)
+    (s.user.password.hasSpecChars = True and s.user.password.hasNumbers = True) or
+    (s.user.password.hasSpecChars = True and s.user.password.hasUpperCase = True) or
+    (s.user.password.hasNumbers = True and s.user.password.hasUpperCase = True)
+
 }
 
 pred safePassword[s : State] {
-    s.user.password 
+    s.user.password.length >= 4 
+    s.user.password.hasSpecChars = True
+    s.user.password.hasNumbers = True 
+    s.user.password.hasUpperCase = True
+    s.user.password.hasPattern = True
 }
 
 test expect {
