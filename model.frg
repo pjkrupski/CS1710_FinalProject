@@ -4,11 +4,44 @@
 --User, Connection, Endpoint
 
 sig User {
-    --active
-    password: one Password
-    --mfa Enabled or Disabled
-    --password_cache Enabled or Disabled
+    active: one Boolean,
+    password: one Password,
+    mfaEnabled: one Status,
+    passwordCache: one Status
 }
+
+
+sig Connection { 
+    active: one Boolean,
+    browerVersion: one PatchLevel,
+    layer4Protocol: one Protocol,
+    networkPassword: one Password,
+    wifiProtocol: one WifiProtocal,
+	peer: one Node
+}
+
+
+sig EndPoint extends Node {
+    active: one Boolean,
+    osVersion: one PatchLevel,
+    encryption: one EncyptionAlgorithm,
+    inputValidation: one Boolean,
+    validUserPacket: one Boolean
+}
+
+--Verification System Sig  ??
+
+---------- Sub Components ----------
+
+---Shared sub components
+
+abstract sig Boolean {}
+one sig True extends Boolean {}
+one sig False extends Boolean {}
+
+abstract sig Status {}
+one sig Enabled extends Status {}
+one sig Disabled extends Status {}
 
 sig Password {
     length: one Int,   --multiples of 5, 1 = (1-5) chars, 2 = (5-10) chars, 3 = (10-15), 4 = (15-MAX)
@@ -18,18 +51,29 @@ sig Password {
     hasPattern: one Boolean
 }
 
-abstract sig Protocol {}
+
+---User sub components---
+
+
+---Connection sub components---
+
+abstract sig TransportProtocol {}
 sig HTTP extends Protocol {}
 sig HTTPS extends Protocol {}
 
-sig Connection {
-    --active
-    --browerVersion
-    layer4Protocol: one Protocol,
-    --networkPassword
-    --wifiProtocol
-	peer: one Node
-}
+abstract sig WifiProtocol {}
+sig WEP extends Protocol {}
+sig WPA extends Protocol {}
+sig WPA2 extends Protocol {}
+
+abstract sig PatchLevel {}
+sig Critical extends PatchLevel {}
+sig Moderate extends PatchLevel {}
+sig Updated extends PatchLevel {}
+
+sig PublicKey{}
+
+
 
 abstract sig Node {
 	endpoints: set Node
@@ -37,33 +81,6 @@ abstract sig Node {
 
 sig Router extends Node {
 }
-
-sig EndPoint extends Node {
-    --active
-    --osVersion
-    --encrypted
-    --inputValidation
-    --Verifying the user packet tag T/F
-}
-
---Verification System Sig  ??
-
----------- Sub Components ----------
---User, Connection, Endpoint
-
-abstract sig Boolean {}
-one sig True extends Boolean {}
-one sig False extends Boolean {}
-
-sig Password {
-    length: one Int,   --multiples of 5, 1 = (1-5) chars, 2 = (5-10) chars, 3 = (10-15), 4 = (15-MAX)
-    hasSpecChars:  one Boolean,
-    hasNumbers: one Boolean,
-    hasUpperCase: one Boolean,
-    hasPattern: one Boolean
-}
-
-sig PublicKey{}
 
 sig SignedMessage {
     signatureVerifiedBy: one PublicKey  
@@ -74,6 +91,17 @@ sig Certificate extends SignedMessage{
     participant: one Participant,
     expired: one Boolean,
 }
+
+
+---EndPoint sub components---
+abstract sig EncryptionAlgorithm {}
+sig 3DES extends EncryptionAlgorithm {}
+sig AES extends EncryptionAlgorithm {}
+sig TwoFish extends EncryptionAlgorithm {}
+
+
+
+---Other---
 
 abstract sig Participant {}
 sig CardHolder extends Participant{}
@@ -86,18 +114,6 @@ sig Acquirer extends Participant{}
 sig CertificateAuthority{
     authorityPublicKey: one PublicKey,
     revocationCertificates: set certificate
-}
-
-pred MessageIntegrityHold[m: SignedMessage, participant: Participant, certificate: Certificate, ca: CertificateAuthority]{
-    validCertificate[certificate, ca]
-    certificate.participant = participant
-    m.signatureVerifiedBy = certificate.participantPublicKey
-}
-
-pred validCertificate[certificate: Certificate, ca:CertificateAuthority]{
-    not certificate in ca.revocationCertificates
-    certificate.expired = False
-    certificate.signatureVerifiedBy = ca.authorityPublicKey
 }
 
 
@@ -141,6 +157,19 @@ pred safeConnection[s : State] {
 
 pred safeEndPoint[s : State] {
  
+}
+
+
+pred MessageIntegrityHold[m: SignedMessage, participant: Participant, certificate: Certificate, ca: CertificateAuthority]{
+    validCertificate[certificate, ca]
+    certificate.participant = participant
+    m.signatureVerifiedBy = certificate.participantPublicKey
+}
+
+pred validCertificate[certificate: Certificate, ca:CertificateAuthority]{
+    not certificate in ca.revocationCertificates
+    certificate.expired = False
+    certificate.signatureVerifiedBy = ca.authorityPublicKey
 }
 
 -----3 levels of passwords------
