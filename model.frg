@@ -31,14 +31,18 @@ sig EndPoint extends Node {
     osVersion: one PatchLevel,
     encryption: one EncryptionAlgorithm,
     inputValidation: one Boolean,
-    validUserPacket: one Boolean
+    validUserPacket: one Boolean,
+    accessControl: one AccessControl,
+    loggingAnalysis: one LoggingAnalysisLevel
 }
+
 
 --Verification System Sig  ??
 
 ---------- Sub Components ----------
 
 ---Shared sub components
+
 
 abstract sig Boolean {}
 one sig True extends Boolean {}
@@ -71,7 +75,9 @@ sig WEP extends WifiProtocol {}
 sig WPA extends WifiProtocol {}
 sig WPA2 extends WifiProtocol {}
 
-abstract sig PatchLevel {}
+abstract sig PatchLevel {
+    score: Int
+}
 sig Critical extends PatchLevel {}
 sig Moderate extends PatchLevel {}
 sig Updated extends PatchLevel {}
@@ -94,12 +100,27 @@ sig Certificate extends SignedMessage{
 
 
 ---EndPoint sub components---
-abstract sig EncryptionAlgorithm {}
+abstract sig EncryptionAlgorithm {
+    score: Int
+}
 sig ThreeDES extends EncryptionAlgorithm {}
 sig AES extends EncryptionAlgorithm {}
 sig TwoFish extends EncryptionAlgorithm {}
-
-
+sig Plain extends EncryptionAlgorithm {}
+abstract sig LoggingAnalysisLevel {
+    score: Int
+}
+one sig None extends Level{}
+one sig Low extends Level{}
+one sig Mid extends Level{}
+one sig High extends Level{}
+abstract sig AccessControl {
+    score: Int
+}
+one sig PasswordBased extends AccessControl {}
+one sig Multifactor extends AccessControl{}
+one sig TokenBased extends AccessControl{}
+one sig None extends AcessControl{}
 
 ---Other---
 
@@ -240,6 +261,10 @@ fun networkTopologyScore[s: State]: one Int {
 	} else 0
 }
 
+fun EndPointScore[e: EndPoint]: one Int {
+    {e.encryption = Plain or e.inputValidation=False or e.accessControl=None or e.validUserPacket = False} => {0} else
+    {add[e.osVersion.score, e.encryption.score, e.accessControl.score, e.loggingAnalysis.score]}
+}
 test expect {
   wellformed_sat: { some s: State | wellformedNetworkTopology[s] } is sat
 }
