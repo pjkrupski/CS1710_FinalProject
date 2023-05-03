@@ -240,6 +240,7 @@ fun networkTopologyScore[s: State]: one Int {
 	} else 0
 }
 
+
 //User score evaluation 
 --password cache is a minor danger since exploiting requires access to things outside of model
 --and only helps an attack when mfa is disabled
@@ -267,7 +268,6 @@ if any single primary component is 5 CRITICAL
 
 
 
-
 test expect {
   wellformed_sat: { some s: State | wellformedNetworkTopology[s] } is sat
 }
@@ -281,4 +281,8 @@ run {
     }
      
  } for exactly 3 State --, exactly 1 User, exactly 1 Connection, exactly 1 EndPoint
+
    --for {next is linear}
+
+   --for {next is linear}
+
