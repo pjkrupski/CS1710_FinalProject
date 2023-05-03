@@ -31,14 +31,18 @@ sig EndPoint extends Node {
     osVersion: one PatchLevel,
     encryption: one EncryptionAlgorithm,
     inputValidation: one Boolean,
-    validUserPacket: one Boolean
+    validUserPacket: one Boolean,
+    accessControl: one AccessControl,
+    loggingAnalysis: one Boolean
 }
+
 
 --Verification System Sig  ??
 
 ---------- Sub Components ----------
 
 ---Shared sub components
+
 
 abstract sig Boolean {}
 one sig True extends Boolean {}
@@ -71,7 +75,8 @@ sig WEP extends WifiProtocol {}
 sig WPA extends WifiProtocol {}
 sig WPA2 extends WifiProtocol {}
 
-abstract sig PatchLevel {}
+abstract sig PatchLevel {
+}
 sig Critical extends PatchLevel {}
 sig Moderate extends PatchLevel {}
 sig Updated extends PatchLevel {}
@@ -94,12 +99,19 @@ sig Certificate extends SignedMessage{
 
 
 ---EndPoint sub components---
-abstract sig EncryptionAlgorithm {}
+abstract sig EncryptionAlgorithm {
+}
 sig ThreeDES extends EncryptionAlgorithm {}
 sig AES extends EncryptionAlgorithm {}
 sig TwoFish extends EncryptionAlgorithm {}
+sig Plain extends EncryptionAlgorithm {}
 
-
+abstract sig AccessControl {
+}
+one sig PasswordBased extends AccessControl {}
+one sig Multifactor extends AccessControl{}
+one sig TokenBased extends AccessControl{}
+one sig None extends AcessControl{}
 
 ---Other---
 
@@ -241,6 +253,35 @@ fun networkTopologyScore[s: State]: one Int {
 }
 
 
+
+fun VersionScore[v: PatchLevel]: one Int {
+    {v = Critical} => {2} else {
+        {v=Moderate} => {1} else {0}
+    }
+}
+
+fun EncryptionScore[e: EncryptionAlgorithm]: one Int {
+    {e = ThreeDES} => {1} else {
+        0
+    }
+}
+
+fun AccessControlScore[a: AccessControl]: one Int {
+    {a = PasswordBased} => {1} else {
+        0
+    } 
+}
+
+fun LoggingAnalysisScore[a: LoggingAnalysisLevel]: one Int {
+    {a = False} => {1} else {
+        0
+    }
+}
+fun EndPointScore[e: EndPoint]: one Int {
+    {e.encryption = Plain or e.inputValidation=False or e.accessControl=None or e.validUserPacket = False} => {5} else
+    {add[VersionScore[e.osVersion], EncryptionScore[e.encryption], AccessControlScore[e.accessControl], LoggingAnalysisScore[e.loggingAnalysis]]}
+}
+
 fun adversaryAdvantageBrowserVersion[p: PatchLevel]: one Int {
 	(p = Critical) => 5 else (p = Moderate) => 1 else 0
 }
@@ -278,7 +319,6 @@ fun adversaryCostConnectionInner[c: Connection]: one Int {
 fun adversaryCostConnection[c: Connection]: one Int {
 	(adversaryCostConnectionInner[c] >= 0) => adversaryCostConnectionInner[c] else 0
 }
-=======
 
 //User score evaluation 
 --password cache is a minor danger since exploiting requires access to things outside of model
