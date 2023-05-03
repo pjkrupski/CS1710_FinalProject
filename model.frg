@@ -240,6 +240,7 @@ fun networkTopologyScore[s: State]: one Int {
 	} else 0
 }
 
+
 fun adversaryAdvantageBrowserVersion[p: PatchLevel]: one Int {
 	(p = Critical) => 5 else (p = Moderate) => 1 else 0
 }
@@ -277,6 +278,34 @@ fun adversaryCostConnectionInner[c: Connection]: one Int {
 fun adversaryCostConnection[c: Connection]: one Int {
 	(adversaryCostConnectionInner[c] >= 0) => adversaryCostConnectionInner[c] else 0
 }
+=======
+
+//User score evaluation 
+--password cache is a minor danger since exploiting requires access to things outside of model
+--and only helps an attack when mfa is disabled
+fun userScore[p: Password, mfa: mfaEnabled, cache: passwordCache]: one Int {
+    (unsafePassword[p] and mfa = Disabled) => 5 else
+    (unsafePassword[p] and mfa = Enabled) => 4 else
+    (semisafePassword[p] and mfa = Disabled and cache = Enabled) => 4 else
+    (semisafePassword[p] and mfa = Enabled) => 3 else
+    (safePassword[p] and mfa = Disabled and cache = Enabled) => 3 else
+    (safePassword[p] and mfa = Disabled and cache = Disabled) => 2 else
+    (safePassword[p] and mfa = Enabled and cache = Enabled) => 1 else
+    (safePassword[p] and mfa = Enabled and cache = Disabled) => 0 
+}
+
+/*
+Secure Total < 6, AND no single primary component is > 2
+Medium
+Critical
+
+if any single primary component is 5 CRITICAL
+*/
+
+
+
+
+
 
 test expect {
   wellformed_sat: { some s: State | wellformedNetworkTopology[s] } is sat
@@ -292,4 +321,8 @@ run {
     }
      
  } for exactly 3 State --, exactly 1 User, exactly 1 Connection, exactly 1 EndPoint
+
    --for {next is linear}
+
+   --for {next is linear}
+
