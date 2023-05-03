@@ -254,6 +254,13 @@ fun userScore[p: Password, mfa: mfaEnabled, cache: passwordCache]: one Int {
     (safePassword[p] and mfa = Enabled and cache = Disabled) => 0 
 }
 
+/*
+Secure Total < 6, AND no single primary component is > 2
+Medium
+Critical
+
+if any single primary component is 5 CRITICAL
+*/
 
 
 
