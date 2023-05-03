@@ -69,13 +69,42 @@ https://cloud.google.com/docs/security/encryption/default-encryption#:~:text=We%
 ### Twofish can be better than AES for data at rest when not considering runtime
 https://cloudstorageinfo.org/twofish-vs-aes-encryption
 
-Paul 
---Password
 
-Jakob
---Number of network hops
 
-Tian
---T/F preds 
+## Evaluation Function
+Total score evaluation 
+
+Calculated from userScore, connectionScore, endPoint score using
+forge integer range of [-8, 7]
+
+Critical:
+A system is critical when all three primary components sum to > 7 
+or when any individual subcomponent has a score of 6
+
+Moderate: 
+A system is moderate when all three primary components sum to [5,6,7]
+or when any individual subcomponent has a score of 4
+
+Safe:
+A system is safe when all three primary components sum to > 0 and < 5 
+or when any individual subcomponent has a score of 3
+
+Due to integer wrap around, any sum greater than 7 will be represented
+as a negative number. The largest possible sum is when all three subcomponents
+have a score of 5, this passing the individual check but their total sum will
+fall within the critical range and be represented as 0 since int restarts at 7
+
+EX: 5 + 5 + 5 = 15
+7 - 15 = 8
+-8 + 8 = 0 
+15 = 0
+
+Edge Case:
+In a perfect system, all three subcomponents have a score of zero, this will
+be checked separately so 0+0+0 is not classified the same as 5+5+5 = 15 = 0 
+
+
+
+
 
 
