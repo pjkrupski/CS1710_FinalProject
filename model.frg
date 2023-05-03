@@ -13,7 +13,7 @@ sig User {
 
 sig Connection { 
     connectionactive: one Boolean,
-    browerVersion: one PatchLevel,
+    browserVersion: one PatchLevel,
     layer4Protocol: one TransportProtocol,
     networkPassword: one Password,
     wifiProtocol: one WifiProtocol,
@@ -173,27 +173,27 @@ pred validCertificate[certificate: Certificate, ca:CertificateAuthority]{
 }
 
 -----3 levels of passwords------
-pred unsafePassword[s : State] {
-    s.user.password.length < 3 or
-    (s.user.password.hasSpecChars = False and s.user.password.hasNumbers = False and s.user.password.hasUpperCase = False) or
-    s.user.password.hasPattern = True
+pred unsafePassword[p : Password] {
+    p.length < 3 or
+    (p.hasSpecChars = False and p.hasNumbers = False and p.hasUpperCase = False) or
+    p.hasPattern = True
 }
 
-pred semisafePassword[s : State] {
-    s.user.password.length = 3 
+pred semisafePassword[p : Password] {
+    p.length = 3
     --At least 2 of the following are true    (hasSpecChars, hasNumbers, hasUpperCase)
-    (s.user.password.hasSpecChars = True and s.user.password.hasNumbers = True) or
-    (s.user.password.hasSpecChars = True and s.user.password.hasUpperCase = True) or
-    (s.user.password.hasNumbers = True and s.user.password.hasUpperCase = True)
+    (p.hasSpecChars = True and p.hasNumbers = True) or
+    (p.hasSpecChars = True and p.hasUpperCase = True) or
+    (p.hasNumbers = True and p.hasUpperCase = True)
 
 }
 
-pred safePassword[s : State] {
-    s.user.password.length >= 4 
-    s.user.password.hasSpecChars = True
-    s.user.password.hasNumbers = True 
-    s.user.password.hasUpperCase = True
-    s.user.password.hasPattern = True
+pred safePassword[p : Password] {
+    p.length >= 4
+    p.hasSpecChars = True
+    p.hasNumbers = True
+    p.hasUpperCase = True
+    p.hasPattern = True
 }
 
 test expect {
@@ -241,6 +241,45 @@ fun networkTopologyScore[s: State]: one Int {
 }
 
 
+fun adversaryAdvantageBrowserVersion[p: PatchLevel]: one Int {
+	(p = Critical) => 5 else (p = Moderate) => 1 else 0
+}
+
+fun adversaryAdvantageWifiProtocol[pass: Password, proto: WifiProtocol]: one Int {
+	(proto = WEP) => {
+		unsafePassword[pass] => {
+			5
+		} else {
+			-- PTW attack, chopchop allow for easy password recovery against WEP.
+			4
+		}
+	} else {
+		unsafePassword[pass] => {
+			5
+		} else semisafePassword[pass] => {
+			3
+		} else {
+			0
+		}
+	}
+}
+
+-- Can be semantically interpreted as a security score.
+fun adversaryCostConnectionInner[c: Connection]: one Int {
+	-- This is currently normalized at 5. Numbers might need to be tweaked.
+	-- An attacker can't MITM a connection that isn't live.
+	(c.connectionactive = False) => 5 else {
+		subtract[5, ((HTTP in c.layer4Protocol) => {
+			add[adversaryAdvantageWifiProtocol[c.networkPassword, c.wifiProtocol],
+				adversaryAdvantageBrowserVersion[c.browserVersion]]
+		} else { 0 })]}
+}
+
+fun adversaryCostConnection[c: Connection]: one Int {
+	(adversaryCostConnectionInner[c] >= 0) => adversaryCostConnectionInner[c] else 0
+}
+=======
+
 //User score evaluation 
 --password cache is a minor danger since exploiting requires access to things outside of model
 --and only helps an attack when mfa is disabled
@@ -275,9 +314,10 @@ test expect {
 //Traces
 run {
     some s: State {
-        unsafePassword[s] or 
-        semisafePassword[s] or
-        safePassword[s]
+        (unsafePassword[s.user.password] or
+         semisafePassword[s.user.password] or
+         safePassword[s.user.password])
+		adversaryCostConnection[s.connection] = 0
     }
      
  } for exactly 3 State --, exactly 1 User, exactly 1 Connection, exactly 1 EndPoint
