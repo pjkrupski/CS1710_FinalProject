@@ -278,7 +278,7 @@ fun LoggingAnalysisScore[a: LoggingAnalysisLevel]: one Int {
 }
 fun EndPointScore[e: EndPoint]: one Int {
     {e.encryption = Plain or e.inputValidation=False or e.accessControl=None or e.validUserPacket = False} => {5} else
-    {add[VersionScore[e.osVersion], EncryptionScore[e.encryption], e.accessControl.score, e.loggingAnalysis.score]}
+    {add[VersionScore[e.osVersion], EncryptionScore[e.encryption], AccessControlScore[e.accessControl], LoggingAnalysisScore[e.loggingAnalysis]]}
 }
 test expect {
   wellformed_sat: { some s: State | wellformedNetworkTopology[s] } is sat
