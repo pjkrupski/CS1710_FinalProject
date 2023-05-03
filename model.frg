@@ -33,7 +33,7 @@ sig EndPoint extends Node {
     inputValidation: one Boolean,
     validUserPacket: one Boolean,
     accessControl: one AccessControl,
-    loggingAnalysis: one LoggingAnalysisLevel
+    loggingAnalysis: one Boolean
 }
 
 
@@ -76,7 +76,6 @@ sig WPA extends WifiProtocol {}
 sig WPA2 extends WifiProtocol {}
 
 abstract sig PatchLevel {
-    score: Int
 }
 sig Critical extends PatchLevel {}
 sig Moderate extends PatchLevel {}
@@ -101,21 +100,13 @@ sig Certificate extends SignedMessage{
 
 ---EndPoint sub components---
 abstract sig EncryptionAlgorithm {
-    score: Int
 }
 sig ThreeDES extends EncryptionAlgorithm {}
 sig AES extends EncryptionAlgorithm {}
 sig TwoFish extends EncryptionAlgorithm {}
 sig Plain extends EncryptionAlgorithm {}
-abstract sig LoggingAnalysisLevel {
-    score: Int
-}
-one sig None extends Level{}
-one sig Low extends Level{}
-one sig Mid extends Level{}
-one sig High extends Level{}
+
 abstract sig AccessControl {
-    score: Int
 }
 one sig PasswordBased extends AccessControl {}
 one sig Multifactor extends AccessControl{}
@@ -261,9 +252,33 @@ fun networkTopologyScore[s: State]: one Int {
 	} else 0
 }
 
+
+fun VersionScore[v: PatchLevel]: one Int {
+    {v = Critical} => {2} else {
+        {v=Moderate} => {1} else {0}
+    }
+}
+
+fun EncryptionScore[e: EncryptionAlgorithm]: one Int {
+    {e = ThreeDES} => {1} else {
+        0
+    }
+}
+
+fun AccessControlScore[a: AccessControl]: one Int {
+    {a = PasswordBased} => {1} else {
+        0
+    } 
+}
+
+fun LoggingAnalysisScore[a: LoggingAnalysisLevel]: one Int {
+    {a = False} => {1} else {
+        0
+    }
+}
 fun EndPointScore[e: EndPoint]: one Int {
-    {e.encryption = Plain or e.inputValidation=False or e.accessControl=None or e.validUserPacket = False} => {0} else
-    {add[e.osVersion.score, e.encryption.score, e.accessControl.score, e.loggingAnalysis.score]}
+    {e.encryption = Plain or e.inputValidation=False or e.accessControl=None or e.validUserPacket = False} => {5} else
+    {add[VersionScore[e.osVersion], EncryptionScore[e.encryption], e.accessControl.score, e.loggingAnalysis.score]}
 }
 test expect {
   wellformed_sat: { some s: State | wellformedNetworkTopology[s] } is sat
