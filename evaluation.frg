@@ -18,7 +18,17 @@ and when any individual subcomponent has a score of 3 or less
 
 */
 
+-- Clamp `n` to [0, 5]
+fun normalize[n: Int]: one Int {
+	n < 0 => 0 else n > 5 => 5 else n
+}
 
+-- High cost corresponds to low advantage and vice versa.
+--
+-- This function converts between the two.
+fun costToAdvantage[n: Int]: one Int {
+	normalize[subtract[5, n]]
+}
 
 //User score evaluation 
 --password cache is a minor danger since exploiting requires access to things outside of model
@@ -61,15 +71,60 @@ pred safePassword[p : Password] {
 
 
 
-//Connection Score evaluation
+// Connection cost evaluation
 
-fun networkTopologyScore[s: State]: one Int {
+fun adversaryAdvantageNetworkTopology[s: State]: one Int {
 	HTTP in s.connection.layer4Protocol => {
 		#s.connection.peer.^endpoints
 	} else 0
 }
 
+fun adversaryAdvantageBrowserVersion[e: Evaluation]: one Int {
+	(e = Critical) => 5 else (e = Moderate) => 1 else 0
+}
 
+fun adversaryAdvantageWifiProtocol[pass: Password, proto: WifiProtocol]: one Int {
+	(proto = WEP) => {
+		unsafePassword[pass] => {
+			5
+		} else {
+			-- PTW attack, chopchop allow for easy password recovery against WEP.
+			4
+		}
+	} else {
+		unsafePassword[pass] => {
+			5
+		} else semisafePassword[pass] => {
+			3
+		} else {
+			0
+		}
+	}
+}
+
+fun adversaryAdvantageConnection[c: Connection]: one Int {
+	-- This is currently normalized at 5. Numbers might need to be tweaked.
+	-- An attacker can't MITM a connection that isn't live.
+	normalize[
+		(c.connectionactive = False) => 0 else {
+			costToAdvantage[((HTTP in c.layer4Protocol) => {
+				add[adversaryAdvantageWifiProtocol[c.networkPassword, c.wifiProtocol],
+					adversaryAdvantageBrowserVersion[c.browserVersion]]
+			} else { 0 })]}
+	]
+}
+
+fun defenderCostConnection[c: Connection]: one Int {
+	add[
+		-- Cost associated with (securely) maintaining TLS certificates.
+		c.layer4Protocol = HTTPS => { 1 } else { 0 }
+	]
+	
+}
+
+fun connectionScore[c: Connection]: one Int {
+	subtract[adversaryAdvantageConnection[c], defenderCostConnection[c]]
+}
 
 //Endpoint Evaluation
 
@@ -119,47 +174,3 @@ fun evaluation[s: State]: one Evaluation {
 	} => Moderate else Critical
 
 }
-
-
-//Adversarial Analysis
-
-fun adversaryAdvantageBrowserVersion[e: Evaluation]: one Int {
-	(e = Critical) => 5 else (e = Moderate) => 1 else 0
-}
-
-fun adversaryAdvantageWifiProtocol[pass: Password, proto: WifiProtocol]: one Int {
-	(proto = WEP) => {
-		unsafePassword[pass] => {
-			5
-		} else {
-			-- PTW attack, chopchop allow for easy password recovery against WEP.
-			4
-		}
-	} else {
-		unsafePassword[pass] => {
-			5
-		} else semisafePassword[pass] => {
-			3
-		} else {
-			0
-		}
-	}
-}
-
--- Can be semantically interpreted as a security score.
-fun adversaryCostConnectionInner[c: Connection]: one Int {
-	-- This is currently normalized at 5. Numbers might need to be tweaked.
-	-- An attacker can't MITM a connection that isn't live.
-	(c.connectionactive = False) => 5 else {
-		subtract[5, ((HTTP in c.layer4Protocol) => {
-			add[adversaryAdvantageWifiProtocol[c.networkPassword, c.wifiProtocol],
-				adversaryAdvantageBrowserVersion[c.browserVersion]]
-		} else { 0 })]}
-}
-
-fun adversaryCostConnection[c: Connection]: one Int {
-	(adversaryCostConnectionInner[c] >= 0) => adversaryCostConnectionInner[c] else 0
-}
-
-
-
