@@ -41,7 +41,8 @@ fun adversaryAdvantageUser[p: Password, mfa: mfaEnabled, cache: passwordCache]: 
     (safePassword[p] and mfa = Disabled and cache = Enabled) => 3 else
     (safePassword[p] and mfa = Disabled and cache = Disabled) => 2 else
     (safePassword[p] and mfa = Enabled and cache = Enabled) => 1 else
-    (safePassword[p] and mfa = Enabled and cache = Disabled) => 0 
+    (safePassword[p] and mfa = Enabled and cache = Disabled) => 0 else
+	0
 }
 
 fun defenderCostUser[s: State]: one Int {
@@ -54,7 +55,7 @@ fun defenderCostUser[s: State]: one Int {
 }
 
 fun userScore[s: State]: one Int {
-	adversaryAdvantageUser[s.user.Password, s.user.mfaEnabled, s.user.passwordCache]
+	adversaryAdvantageUser[s.user.password, s.user.mfaEnabled, s.user.passwordCache]
 }
 
 -----3 levels of passwords------
@@ -196,17 +197,17 @@ fun EndPointScore[e: EndPoint]: one Int {
 //Final score evalutation
 fun evaluation[s: State]: one Evaluation {
 	//Check Safe
-    {((add[userScore[s], adversaryAdvantageNetworkTopology[s], EndPointScore[s.EndPoint]]) < 5)
+    {((add[userScore[s], adversaryAdvantageNetworkTopology[s], EndPointScore[s.endpoint]]) < 5)
 	   userScore[s] < 4
 	   adversaryAdvantageNetworkTopology[s] < 4
-	   EndPointScore[s.EndPoint] < 4
+	   EndPointScore[s.endpoint] < 4
 	} => Safe else
 
 	//Check Moderate
-    {((add[userScore[s], adversaryAdvantageNetworkTopology[s], EndPointScore[s.EndPoint]]) <= 7) or
+    {((add[userScore[s], adversaryAdvantageNetworkTopology[s], EndPointScore[s.endpoint]]) <= 7) or
 	   userScore[s] = 4 or
 	   adversaryAdvantageNetworkTopology[s] = 4 or
-	   EndPointScore[s.EndPoint] = 4
+	   EndPointScore[s.endpoint] = 4
 	} => Moderate else Critical
 
 }
