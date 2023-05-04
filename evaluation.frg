@@ -127,12 +127,9 @@ fun adversaryAdvantageConnection[c: Connection]: one Int {
 	]
 }
 
-fun defenderCostConnection[c: Connection]: one Int {
-	add[
-		-- Cost associated with (securely) maintaining TLS certificates.
-		c.layer4Protocol = HTTPS => { 1 } else { 0 }
-	]
-	
+fun defenderCostConnection[s: State]: one Int {
+	-- Cost associated with (securely) maintaining TLS certificates.
+	s.connection.layer4Protocol = HTTPS => { 1 } else { 0 }
 }
 
 fun connectionScore[c: Connection]: one Int {
@@ -175,7 +172,8 @@ fun adversaryAdvantagEndPoint[e: EndPoint]: one Int {
 	]}
 }
 
-fun defenderCostEndPoint[e: EndPoint]: one Int {
+fun defenderCostEndPoint[s: State]: one Int {
+	let e = s.endpoint |
 	-- Performant encryption, in general, is implemented in specialized hardware
     -- to thwart side-channel attacks. AES is standardized by NIST, TwoFish is
     -- not. So we posit that specialized hardware for AES is more readily
@@ -210,4 +208,8 @@ fun evaluation[s: State]: one Evaluation {
 	   EndPointScore[s.endpoint] = 4
 	} => Moderate else Critical
 
+}
+
+fun evaluationCost[s: State]: one Int {
+	add[defenderCostUser[s], defenderCostConnection[s], defenderCostEndPoint[s]]
 }
