@@ -135,38 +135,62 @@ fun defenderCostConnection[c: Connection]: one Int {
 }
 
 fun connectionScore[c: Connection]: one Int {
-	subtract[adversaryAdvantageConnection[c], defenderCostConnection[c]]
+	adversaryAdvantageConnection[c]
 }
 
-//Endpoint Evaluation
+// Endpoint cost evaluation
 
-fun VersionScore[v: Evaluation]: one Int {
+fun adversaryAdvantageVersion[v: Evaluation]: one Int {
     {v = Critical} => {2} else {
         {v=Moderate} => {1} else {0}
     }
 }
 
-fun EncryptionScore[e: EncryptionAlgorithm]: one Int {
+fun adversaryAdvantageEncryption[e: EncryptionAlgorithm]: one Int {
     {e = ThreeDES} => {1} else {
         0
     }
 }
 
-fun AccessControlScore[a: AccessControl]: one Int {
+fun adversaryAdvantageAccessControl[a: AccessControl]: one Int {
     {a = PasswordBased} => {1} else {
         0
     } 
 }
 
-fun LoggingAnalysisScore[a: LoggingAnalysisLevel]: one Int {
+fun adversaryAdvantageLoggingAnalysis[a: LoggingAnalysisLevel]: one Int {
     {a = False} => {1} else {
         0
     }
 }
-fun EndPointScore[e: EndPoint]: one Int {
+
+fun adversaryAdvantagEndPoint[e: EndPoint]: one Int {
     {e.encryption = Plain or e.inputValidation=False or e.accessControl=None or e.validUserPacket = False} => {5} else
-    {add[VersionScore[e.osVersion], EncryptionScore[e.encryption], AccessControlScore[e.accessControl], LoggingAnalysisScore[e.loggingAnalysis]]}
+    {add[
+		adversaryAdvantageVersion[e.osVersion],
+ 		adversaryAdvantageEncryption[e.encryption],
+ 		adversaryAdvantageAccessControl[e.accessControl],
+ 		adversaryAdvantageLoggingAnalysis[e.loggingAnalysis]
+	]}
 }
+
+fun defenderCostEndPoint[e: EndPoint]: one Int {
+	-- Performant encryption, in general, is implemented in specialized hardware
+    -- to thwart side-channel attacks. AES is standardized by NIST, TwoFish is
+    -- not. So we posit that specialized hardware for AES is more readily
+    -- available (and hence, more cost-effective.)
+	let encryptionCost = e.encryption = AES => { 1 } else e.encryption = TwoFish => { 2 } else { 0 } |
+	-- You have to pay people to analyze your logs.
+	let blueTeamCost = e.loggingAnalysis = True => 1 else 0 |
+	-- You have to pay RSA (or some similar company) to mange your tokens and seeds.
+	let accessControlCost = e.accessControl = TokenBased => 1 else 0 |
+	add[encryptionCost, blueTeamCost, accessControlCost]
+}
+
+fun EndPointScore[e: EndPoint]: one Int {
+	adversaryAdvantagEndPoint[e]
+}
+
 
 
 //Final score evalutation
