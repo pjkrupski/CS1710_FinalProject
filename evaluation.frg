@@ -1,6 +1,6 @@
 #lang forge 
 open "model.frg"
---open "model.frg"   causes "cycle in loading" error
+
 /*Total score evaluation 
 
 Critical:
@@ -30,10 +30,10 @@ fun costToAdvantage[n: Int]: one Int {
 	normalize[subtract[5, n]]
 }
 
-//User score evaluation 
+// User security cost evaluation
 --password cache is a minor danger since exploiting requires access to things outside of model
 --and only helps an attack when mfa is disabled
-fun userScore[p: Password, mfa: mfaEnabled, cache: passwordCache]: one Int {
+fun adversaryAdvantageUser[p: Password, mfa: mfaEnabled, cache: passwordCache]: one Int {
     (unsafePassword[p] and mfa = Disabled) => 5 else
     (unsafePassword[p] and mfa = Enabled) => 4 else
     (semisafePassword[p] and mfa = Disabled and cache = Enabled) => 4 else
@@ -44,6 +44,18 @@ fun userScore[p: Password, mfa: mfaEnabled, cache: passwordCache]: one Int {
     (safePassword[p] and mfa = Enabled and cache = Disabled) => 0 
 }
 
+fun defenderCostUser[s: State]: one Int {
+	-- There's a lot of administrative overhead to enforce a safe password policy.
+	(all p: Password | safePassword[p]) => {
+		2
+	} else {
+		0
+	}
+}
+
+fun userScore[s: State]: one Int {
+	adversaryAdvantageUser[s.user.Password, s.user.mfaEnabled, s.user.passwordCache]
+}
 
 -----3 levels of passwords------
 pred unsafePassword[p : Password] {
@@ -160,16 +172,16 @@ fun EndPointScore[e: EndPoint]: one Int {
 //Final score evalutation
 fun evaluation[s: State]: one Evaluation {
 	//Check Safe
-    {((userScore[s.Password, s.mfaEnabled, s.passwordCache] + networkTopologyScore[s] + EndPointScore[s.EndPoint]) < 5)
-	   userScore[s.Password, s.mfaEnabled, s.passwordCache] < 4
-	   networkTopologyScore[s] < 4
+    {((userScore[s] + adversaryAdvantageNetworkTopology[s] + EndPointScore[s.EndPoint]) < 5)
+	   userScore[s] < 4
+	   adversaryAdvantageNetworkTopology[s] < 4
 	   EndPointScore[s.EndPoint] < 4
 	} => Safe else
 
 	//Check Moderate
-    {((userScore[s.Password, s.mfaEnabled, s.passwordCache] + networkTopologyScore[s] + EndPointScore[s.EndPoint]) <= 7) or
-	   userScore[s.Password, s.mfaEnabled, s.passwordCache] = 4 or
-	   networkTopologyScore[s] = 4 or
+    {((userScore[s] + adversaryAdvantageNetworkTopology[s] + EndPointScore[s.EndPoint]) <= 7) or
+	   userScore[s] = 4 or
+	   adversaryAdvantageNetworkTopology[s] = 4 or
 	   EndPointScore[s.EndPoint] = 4
 	} => Moderate else Critical
 
