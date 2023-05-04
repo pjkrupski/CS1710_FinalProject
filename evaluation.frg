@@ -172,14 +172,14 @@ fun EndPointScore[e: EndPoint]: one Int {
 //Final score evalutation
 fun evaluation[s: State]: one Evaluation {
 	//Check Safe
-    {((userScore[s] + adversaryAdvantageNetworkTopology[s] + EndPointScore[s.EndPoint]) < 5)
+    {((add[userScore[s], adversaryAdvantageNetworkTopology[s], EndPointScore[s.EndPoint]]) < 5)
 	   userScore[s] < 4
 	   adversaryAdvantageNetworkTopology[s] < 4
 	   EndPointScore[s.EndPoint] < 4
 	} => Safe else
 
 	//Check Moderate
-    {((userScore[s] + adversaryAdvantageNetworkTopology[s] + EndPointScore[s.EndPoint]) <= 7) or
+    {((add[userScore[s], adversaryAdvantageNetworkTopology[s], EndPointScore[s.EndPoint]]) <= 7) or
 	   userScore[s] = 4 or
 	   adversaryAdvantageNetworkTopology[s] = 4 or
 	   EndPointScore[s.EndPoint] = 4
