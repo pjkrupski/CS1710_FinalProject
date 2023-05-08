@@ -1,5 +1,4 @@
 #lang forge 
-
 ---------- Components ----------
 --User, Connection, Endpoint
 
@@ -13,6 +12,7 @@ sig User {
 
 sig Connection { 
     connectionactive: one Boolean,
+    browserVersion: one Evaluation,
     browserVersion: one PatchLevel,
     layer4Protocol: one TransportProtocol,
     networkPassword: one Password,
@@ -28,7 +28,7 @@ abstract sig Node {
 
 sig EndPoint extends Node {
     endpointactive: one Boolean,
-    osVersion: one PatchLevel,
+    osVersion: one Evaluation,
     encryption: one EncryptionAlgorithm,
     inputValidation: one Boolean,
     validUserPacket: one Boolean,
@@ -42,6 +42,10 @@ sig EndPoint extends Node {
 ---------- Sub Components ----------
 
 ---Shared sub components
+abstract sig Evaluation {}
+one sig Safe extends Evaluation {}
+one sig Moderate extends Evaluation {}
+one sig Critical extends Evaluation {}
 
 
 abstract sig Boolean {}
@@ -91,7 +95,7 @@ sig SignedMessage {
     signatureVerifiedBy: one PublicKey  
 }
 
-sig Certificate extends SignedMessage{
+sig Certificate extends SignedMessage {
     participantPublicKey: one PublicKey,
     participant: one Participant,
     expired: one Boolean
@@ -105,6 +109,15 @@ sig ThreeDES extends EncryptionAlgorithm {}
 sig AES extends EncryptionAlgorithm {}
 sig TwoFish extends EncryptionAlgorithm {}
 sig Plain extends EncryptionAlgorithm {}
+
+
+abstract sig AccessControl {
+}
+one sig PasswordBased extends AccessControl {}
+one sig Multifactor extends AccessControl{}
+one sig TokenBased extends AccessControl{}
+one sig None extends AccessControl{}
+
 
 abstract sig AccessControl {
 }
@@ -129,8 +142,6 @@ sig CertificateAuthority{
 }
 
 
-
-
 ---------- States ----------
 
 abstract sig State {
@@ -142,6 +153,7 @@ abstract sig State {
 one sig Initial extends State {}
 one sig Active extends State {}
 one sig End extends State {}
+
 
 pred InitialToActive {
    
