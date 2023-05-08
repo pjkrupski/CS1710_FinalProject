@@ -92,9 +92,9 @@ test expect {
 //Traces
 run {
     some s: State {
-        (unsafePassword[s.user.password] or
+       -- (unsafePassword[s.user.password] or
          semisafePassword[s.user.password] or
-         safePassword[s.user.password])
+         safePassword[s.user.password]--) 
 		evaluation[s] = Critical
 		evaluationCost[s] = 0
     }

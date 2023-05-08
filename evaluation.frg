@@ -86,6 +86,13 @@ pred safePassword[p : Password] {
 
 // Connection cost evaluation
 
+fun networkTopologyScore[s: State]: one Int {
+	HTTP in s.connection.layer4Protocol => {
+		#s.connection.peer.^endpoints
+	} else 0
+}
+
+
 fun adversaryAdvantageNetworkTopology[s: State]: one Int {
 	HTTP in s.connection.layer4Protocol => {
 		#s.connection.peer.^endpoints
@@ -138,6 +145,36 @@ fun connectionScore[c: Connection]: one Int {
 
 // Endpoint cost evaluation
 
+fun VersionScore[e: Evaluation]: one Int {
+    {e = Critical} => {2} else {
+        {e=Moderate} => {1} else {0}
+    }
+}
+
+fun EncryptionScore[e: EncryptionAlgorithm]: one Int {
+    {e = ThreeDES} => {1} else {
+        0
+    }
+}
+
+fun AccessControlScore[a: AccessControl]: one Int {
+    {a = PasswordBased} => {1} else {
+        0
+    } 
+}
+
+fun LoggingAnalysisScore[a: LoggingAnalysisLevel]: one Int {
+    {a = False} => {1} else {
+        0
+    }
+}
+
+
+
+
+
+//Adversarial Functions
+
 fun adversaryAdvantageVersion[v: Evaluation]: one Int {
     {v = Critical} => {2} else {
         {v=Moderate} => {1} else {0}
@@ -170,6 +207,21 @@ fun adversaryAdvantagEndPoint[e: EndPoint]: one Int {
  		adversaryAdvantageAccessControl[e.accessControl],
  		adversaryAdvantageLoggingAnalysis[e.loggingAnalysis]
 	]}
+}
+
+-- Can be semantically interpreted as a security score.
+fun adversaryCostConnectionInner[c: Connection]: one Int {
+	-- This is currently normalized at 5. Numbers might need to be tweaked.
+	-- An attacker can't MITM a connection that isn't live.
+	(c.connectionactive = False) => 5 else {
+		subtract[5, ((HTTP in c.layer4Protocol) => {
+			add[adversaryAdvantageWifiProtocol[c.networkPassword, c.wifiProtocol],
+				adversaryAdvantageBrowserVersion[c.browserVersion]]
+		} else { 0 })]}
+}
+
+fun adversaryCostConnection[c: Connection]: one Int {
+	(adversaryCostConnectionInner[c] >= 0) => adversaryCostConnectionInner[c] else 0
 }
 
 fun defenderCostEndPoint[s: State]: one Int {
