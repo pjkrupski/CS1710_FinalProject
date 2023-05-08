@@ -95,7 +95,8 @@ run {
         (unsafePassword[s.user.password] or
          semisafePassword[s.user.password] or
          safePassword[s.user.password])
-		adversaryCostConnection[s.connection] = 0
+		evaluation[s] = Critical
+		evaluationCost[s] = 0
     }
      
  } for exactly 1 User, exactly 1 Connection, exactly 1 EndPoint, exactly 6 Int --exactly 3 State --, exactly 1 User, exactly 1 Connection, exactly 1 EndPoint
