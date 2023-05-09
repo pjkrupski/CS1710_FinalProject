@@ -3,7 +3,6 @@ open "evaluation.frg"
 open "model.frg"
 
 
-
 pred InitialToActive {
    
 }
@@ -92,15 +91,10 @@ test expect {
 //Traces
 run {
     some s: State {
-       -- (unsafePassword[s.user.password] or
+        (unsafePassword[s.user.password] or
          semisafePassword[s.user.password] or
-         safePassword[s.user.password]--) 
+         safePassword[s.user.password])
 		evaluation[s] = Critical
 		evaluationCost[s] = 0
     }
-     
- } for exactly 1 User, exactly 1 Connection, exactly 1 EndPoint, exactly 6 Int --exactly 3 State --, exactly 1 User, exactly 1 Connection, exactly 1 EndPoint
-
-   --for {next is linear}
-
-   --for {next is linear}
+} for exactly 1 User, exactly 1 Connection, exactly 1 EndPoint, exactly 6 Int
