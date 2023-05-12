@@ -31,10 +31,10 @@ fun costToAdvantage[n: Int]: one Int {
 }
 
 // User security cost evaluation
---password cache is a minor danger since exploiting requires access to things outside of model
---and only helps an attack when mfa is disabled
 fun adversaryAdvantageUser[p: Password, mfa: mfaEnabled, cache: passwordCache]: one Int {
-    (unsafePassword[p] and mfa = Disabled) => 5 else
+	--password cache is a minor danger since exploiting requires access to things outside of model
+	--and only helps an attack when mfa is disabled
+	(unsafePassword[p] and mfa = Disabled) => 5 else
     (unsafePassword[p] and mfa = Enabled) => 4 else
     (semisafePassword[p] and mfa = Disabled and cache = Enabled) => 4 else
     (semisafePassword[p] and mfa = Enabled) => 3 else
@@ -246,6 +246,14 @@ fun EndPointScore[e: EndPoint]: one Int {
 
 //Final score evalutation
 fun evaluation[s: State]: one Evaluation {
+	/*
+	Secure Total < 6, AND no single primary component is > 2
+	Medium
+	Critical
+
+	if any single primary component is 5 CRITICAL
+	*/
+
 	//Check Safe
     {((add[userScore[s], adversaryAdvantageNetworkTopology[s], EndPointScore[s.endpoint]]) < 5)
 	   userScore[s] < 4

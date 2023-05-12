@@ -13,7 +13,6 @@ sig User {
 sig Connection { 
     connectionactive: one Boolean,
     browserVersion: one Evaluation,
-    --browserVersion: one PatchLevel,
     layer4Protocol: one TransportProtocol,
     networkPassword: one Password,
     wifiProtocol: one WifiProtocol,
@@ -79,14 +78,7 @@ sig WEP extends WifiProtocol {}
 sig WPA extends WifiProtocol {}
 sig WPA2 extends WifiProtocol {}
 
-/*
-abstract sig PatchLevel {
-}
-sig Critical extends PatchLevel {}
-sig Moderate extends PatchLevel {}
-sig Updated extends PatchLevel {}
-*/
-sig PublicKey{}
+sig PublicKey {}
 
 
 sig Router extends Node {
@@ -147,29 +139,3 @@ abstract sig State {
 one sig Initial extends State {}
 one sig Active extends State {}
 one sig End extends State {}
-
-
-
-
-//User score evaluation 
---password cache is a minor danger since exploiting requires access to things outside of model
---and only helps an attack when mfa is disabled
-
-
-/*
-Secure Total < 6, AND no single primary component is > 2
-Medium
-Critical
-
-if any single primary component is 5 CRITICAL
-*/
-
-
-
-
-
-
-   --for {next is linear}
-
-   --for {next is linear}
-
